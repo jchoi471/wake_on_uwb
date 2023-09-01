@@ -22,7 +22,7 @@ Follow these steps:
 
 <img width="802" alt="Screen Shot 2022-09-15 at 1 39 29 PM" src="https://github.gatech.edu/storage/user/55995/files/2a3f2032-dafc-4d1e-ad83-df86259f9a7b">
 
-There will be a libraries folder inside the PATH. Add all the libraries in (https://github.gatech.edu/rsinghal42/UWB_Basic_Setup/tree/master/Arduino_libraries) to the folder.
+There will be a libraries folder inside the PATH. Add all the libraries in (https://github.com/shivamag437/cs8803_mci/tree/main/Arduino_libraries) to the folder.
 
 4. For verifying if you code is working load the "UWB_Initiator.ino" file in Arduino and click verify on the top left corner.
 
