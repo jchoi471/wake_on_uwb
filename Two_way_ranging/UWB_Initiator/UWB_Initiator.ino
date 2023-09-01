@@ -31,24 +31,21 @@
 #include<Wire.h>
 
 #define VBATPIN A2
-
-
 #define INIT_RTC_ALWAYS 0
-
 #define USB_CONNECTION 0
 #define INITIATOR 1
-//int chck =2390;
-
 #define DEBUG_PRINT 0
 #define DEBUG_CIR 0
+
 // connection pins
 #define OUR_UWB_FEATHER 1
 #define AUS_UWB_FEATHER 0
+
 #define NCIR_FULL 1016
 #define RX_TIME_FP_INDEX_OFFSET 5
+
 int packet_count = 1;
 int packet_type = 0;
-
 
 #if(OUR_UWB_FEATHER==1)
 const uint8_t PIN_RST = 9; // reset pin
@@ -71,14 +68,13 @@ byte tx_final_msg[MAX_FINAL_LEN] = {FINAL_MSG_TYPE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 Ranging thisRange;
 
-byte rx_packet[128];
+byte rx_packet[128]; //stores a packet received by the dw1000 sensor
 uint8_t myAcc[1000];
 
 typedef enum states{STATE_IDLE, STATE_POLL, STATE_RESP_EXPECTED, STATE_FINAL_SEND, STATE_TWR_DONE, STATE_RESP_SEND, STATE_FINAL_EXPECTED, STATE_OTHER_POLL_EXPECTED, STATE_RESP_PENDING, STATE_DIST_EST_EXPECTED, STATE_DIST_EST_SEND, STATE_TIGHT_LOOP,
 STATE_RECEIVE, STATE_PRESYNC, STATE_SYNC, STATE_ANCHOR, STATE_TAG, STATE_FIRST_START, STATE_OBLIVION, STATE_ACK_EXPECTED} STATES;
 volatile uint8_t current_state = STATE_IDLE;
 unsigned long silenced_at =0;
-#define SILENCE_PERIOD 120
 long randNumber;
 int currentSlots = 8;
 int myDevID = INITIATOR+2;
@@ -110,7 +106,7 @@ typedef struct DeviceRespTs {
 DeviceRespTs deviceRespTs[MAX_DEVICES_TOGETHER];
 int currentDeviceIndex = 0;
 
-
+//Function to receive a packet using the dw1000 sensor
 void receiver(uint16_t rxtoval=0 ) {
   received = false;
   DW1000.newReceive();
@@ -120,14 +116,12 @@ void receiver(uint16_t rxtoval=0 ) {
   if (rxtoval>0) {
     DW1000.setRxTimeout(rxtoval);
   } else {
-    //Serial.print("Resetting Timeout to  ");
-    //Serial.println(rxtoval);
     DW1000.setRxTimeout(rxtoval);
   }
   DW1000.startReceive();
-  //Serial.println("Started Receiver");
 }
 
+//Function to print the CIR data
 void print_CIR()
 {
     char buff[140];
@@ -286,8 +280,6 @@ void handleRxTO() {
   #endif
 }
 
-
-float gravity_f = 0.0f;
 uint16_t seq = 0;
 uint16_t recvd_poll_seq = 0;
 uint16_t recvd_resp_seq = 0;
@@ -316,6 +308,9 @@ void loop() {
   }
   
   switch(current_state) {
+    
+    //For initiator - Sends to state poll
+    //For tag - Waits for poll message from initiator
     case STATE_IDLE: {
       if (RxTimeout == true) {
         RxTimeout = false;
@@ -339,15 +334,13 @@ void loop() {
         waiting=0;
         received = false;
         sendComplete = false;
-        //randNumber = random(300);
-        //if (randNumber<10) {
-          //Switch to POLL state
-          current_state = STATE_POLL;
-          unlock_waiting = 0;
-        //}
+        //Switch to POLL state
+        current_state = STATE_POLL;
+        unlock_waiting = 0;
       #endif
       break;
     }
+    //For Initiator - Creates and broadcasts a poll message to the tag
     case STATE_POLL: {
       //Send POLL here
       seq++;
@@ -364,9 +357,7 @@ void loop() {
       current_state = STATE_RESP_EXPECTED;
       int i = 0;
 
-
-      while(!sendComplete){
-      };
+      while(!sendComplete); //Wait for the send to complete
 
       current_time_us = get_time_us();
       sendComplete = false;
@@ -375,9 +366,9 @@ void loop() {
       init_time = currentDWTime.getTimestamp();
       break;
     }
-    /* Dont delete, TBC*/
+    //For tag - Sends a response to the poll message received from the initiator
     case STATE_RESP_SEND: {
-
+      //retrieve sequence number from the poll message
       seq = rx_packet[SEQ_IDX] +  ((uint16_t)rx_packet[SEQ_IDX+1] << 8);
       #if (DEBUG_PRINT==1)  
         Serial.print("Preparing to send response for ");
@@ -385,36 +376,38 @@ void loop() {
       #endif
 
       uint64_t PollTxTime_64=0L;
+      //get the timestamp of the poll message
       any_msg_get_ts(&rx_packet[POLL_MSG_POLL_TX_TS_IDX], &PollTxTime_64);
       thisRange.PollTxTime = DW1000Time((int64_t)PollTxTime_64);
       DW1000Time rxTS; 
       DW1000.getReceiveTimestamp(rxTS);
       thisRange.PollRxTime = rxTS;
 
+      //Prepare response message
       rx_resp_msg[DST_IDX] = rx_packet[SRC_IDX];
       rx_resp_msg[SRC_IDX] = myDevID;
       
+      //Send response
       generic_send(rx_resp_msg, sizeof(rx_resp_msg), POLL_MSG_POLL_TX_TS_IDX, SEND_DELAY_FIXED);
 
-      while(!sendComplete);
+      while(!sendComplete); //Wait for the send to complete
+      
       sendComplete = false;
       DW1000Time txTS; 
       DW1000.getTransmitTimestamp(txTS);
       thisRange.RespTxTime = txTS;
-      
-      //Serial.println("Response sent");
       receiver(60);
       current_state = STATE_FINAL_EXPECTED;
       break;
     }
- 
+
+    //For initiator - Waits for a response from the tag
     case STATE_RESP_EXPECTED: {
-      //Serial.println("State: RESP EXPECTED");
       if (received) {
         received = false;
         show_packet(rx_packet, DW1000.getDataLength());
+        //Check that the response is from the tag
         if ((rx_packet[DST_IDX] == myDevID || rx_packet[DST_IDX] == BROADCAST_ID)) {
-          //Serial.println("Recieved response!");
           recvd_resp_seq = rx_packet[SEQ_IDX] +  ((uint16_t)rx_packet[SEQ_IDX+1] << 8);
           deviceRespTs[currentDeviceIndex].deviceID = rx_packet[SRC_IDX];
           DW1000Time rxTS;
@@ -442,8 +435,9 @@ void loop() {
       }
       break;
     }
+    //For initiator - Sends a final message to the tag
     case STATE_FINAL_SEND: {
-      //Serial.println("State: FINAL SEND");
+      //Create final message
       tx_final_msg[SRC_IDX] = myDevID;
       tx_final_msg[DST_IDX] = BROADCAST_ID;
       tx_final_msg[SEQ_IDX] = recvd_resp_seq & 0xFF;
@@ -456,9 +450,9 @@ void loop() {
       any_msg_set_ts(&tx_final_msg[FINAL_MSG_RESP_RX_TS_IDX + 1 + (i*FINAL_MSG_ONE_RESP_ENTRY)], deviceRespTs[i].respRxTime);
 
       generic_send(tx_final_msg, MAX_FINAL_LEN, FINAL_MSG_FINAL_TX_TS_IDX, SEND_DELAY_FIXED);
-      while(!sendComplete);
-      sendComplete = false;
+      while(!sendComplete); //Wait for the send to complete
       
+      sendComplete = false;
       DW1000.getSystemTimestamp(currentDWTime);
       final_sent_time = currentDWTime.getTimestamp();
 
@@ -466,6 +460,7 @@ void loop() {
       receiver(TYPICAL_RX_TIMEOUT);
       break;
     }
+    //Doesn't do anything but leads to occaisonal wrong distance measurements whn removed
     case STATE_ACK_EXPECTED: {
        //Serial.println("State: ACK EXPECTED");
       if (received) {
@@ -517,8 +512,6 @@ void loop() {
           int dist = thisRange.calculateRange();
           //thisRange.printAll();
           current_state = STATE_IDLE;
-          
-          
         }
       }
       break;
@@ -527,12 +520,9 @@ void loop() {
     case STATE_OBLIVION: {
       //Do nothing!
     }
-    
-    
   }
-  if(DEBUG_CIR==1)
-  {
-  print_CIR();
+  if(DEBUG_CIR==1){
+    print_CIR();
   }
   
 }
@@ -548,7 +538,6 @@ void show_packet(byte packet[], int num) {
 }
 
 //Timer Functions
-//Timer functions.
 void setTimerFrequency(int frequencyHz) {
   int compareValue = (CPU_HZ / (TIMER_PRESCALER_DIV * frequencyHz)) - 1;
   
@@ -664,16 +653,6 @@ void dateTime(uint16_t* date, uint16_t* time_) {
   // return time using FAT_TIME macro to format fields
   *time_ = FAT_TIME(now.hour(), now.minute(), now.second());
   printDateTime();
-}
-
-float getVoltage()
-{
-  
-  float measuredvbat = analogRead(VBATPIN);
-  measuredvbat *= 2;    // we divided by 2, so multiply back
-  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-  measuredvbat /= 1024; // convert to voltage
-  return measuredvbat;
 }
 
 void printDateTime()
