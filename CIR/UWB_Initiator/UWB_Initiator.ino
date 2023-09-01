@@ -128,7 +128,7 @@ void print_CIR()
   Serial.println(long_buff);
 }
 
-
+//Setup the board
 void setup() {
   analogReadResolution(10);
   // DEBUG monitoring
@@ -233,6 +233,7 @@ void loop() {
       current_state = STATE_POLL;
       break;
     }
+    
     case STATE_POLL: {
       //Send POLL here
       seq++;
