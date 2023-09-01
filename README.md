@@ -36,7 +36,7 @@ The tag initializes TWR by sending a ‘Poll’ message to the known address of 
 The Anchor then records the Time of Reception of Poll(TRP), and replies with the response message at the Time of Sending Response(TSR). 
 The Tag, upon receiving the response message, then records the Time of Response Reception (TRR) and composes the final message, in which its ID, TSP, TRR and Time Start Final(TSF) are included.
 
-The TWR logic is there in https://github.gatech.edu/rsinghal42/UWB_Basic_Setup/blob/master/UWB_Initiator/RangingContainer.h which you can see below:
+The TWR logic is there in https://github.com/shivamag437/cs8803_mci/blob/main/Two_way_ranging/UWB_Initiator/RangingContainer.h which you can see below:
 
 <img width="629" alt="Screen Shot 2022-09-15 at 11 42 27 PM" src="https://github.gatech.edu/storage/user/55995/files/dcaff3bb-693d-43a9-9a64-7b3af59fa0b3">
 
