@@ -2,34 +2,19 @@ import serial
 import ast
 import matplotlib.pyplot as plt
 import math
-import numpy as np
-import time
 from drawnow import *
-
-# x = np.linspace(0, 10, 96)
-# y = np.zeros(96)
 
 plt.ion()
 
-# figure, ax = plt.subplots(figsize=(10, 8))
-# line1, = ax.plot(x, y)
-
-# plt.title("CIR", fontsize=20)
-
-# plt.xlabel("X-axis")
-# plt.ylabel("Y-axis")
-
-ser = serial.Serial('/dev/ttyACM0',115200)
+ser = serial.Serial('/dev/ttyACM0',115200) #Change the serial port name to the one the board is connected to on the device
 f = open('serial.out',"a")
 
 global new_y
 
 def makeGraph():
     plt.title('CIR')      #Plot the title
-    # plt.grid(True)                                  #Turn the grid on
     plt.ylabel('Magnitude')                            #Set ylabels
     plt.plot(new_y)       #plot the temperature
-    # plt.legend(loc='upper left')                    #plot the legend   
 
 while True:
     while (ser.inWaiting()==0): #Wait here until there is data
@@ -43,7 +28,7 @@ while True:
         f.write('\n')
 
     except:
-        print("Keyboard Interrupt")
+        print("Error reading line")
         break
     if (line[0:3] == "CIR"):
         line = "[" + line[11:-1] + "]\n"
@@ -79,12 +64,6 @@ while True:
 
         drawnow(makeGraph)
         plt.pause(.000001)
-
-        # line1.set_xdata(x)
-        # line1.set_ydata(new_y)
-        # figure.canvas.draw()
-        # figure.canvas.flush_events()
-        # time.sleep(0.1)
 
 ser.close()
 f.close()
