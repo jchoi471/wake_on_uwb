@@ -1,0 +1,7 @@
+{
+    "configuration": "usbstack=arduino,debug=off",
+    "board": "adafruit:samd:adafruit_feather_m0",
+    "port": "COM7",
+    "sketch": "UWB_ring_for_highschool_student_initiator.ino",
+    "output": "C:/files/arduino_project_output/our_ring_code"
+}
