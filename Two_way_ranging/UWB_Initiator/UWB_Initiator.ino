@@ -19,6 +19,9 @@
  *  
  */
 
+#include <Set.h>
+
+
 #include <SPI.h>
 #include <math.h>
 #include "genericFunctions.h"
@@ -53,6 +56,8 @@ const uint8_t PIN_IRQ = 17; // irq pin
 const uint8_t PIN_SS = 19; // spi select pin
 #endif
 
+// Device Set
+Set<int> deviceSet;
 
 // DEBUG packet sent status and count
 volatile boolean received = false;
@@ -309,6 +314,24 @@ void loop() {
   
   switch(current_state) {
     
+    // receive data of the phone
+    case STATE_RECEIVE: {
+      
+      #if (DEBUG_PRINT==1)
+      Serial.println("******************");
+      Serial.println("Receiving data for the phone");
+      #endif
+      
+      // analyze the received data
+
+      // identify which phone's data it belongs to (should be in the set)
+      
+      // send uwb message to that phone so that it can wake up
+
+      // change state to something else ??
+
+    }
+
     //For initiator - Sends to state poll
     //For tag - Waits for poll message from initiator
     case STATE_IDLE: {
