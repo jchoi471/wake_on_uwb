@@ -72,7 +72,8 @@ byte rx_packet[128]; //stores a packet received by the dw1000 sensor
 uint8_t myAcc[1000];
 
 typedef enum states{STATE_IDLE, STATE_POLL, STATE_RESP_EXPECTED, STATE_FINAL_SEND, STATE_TWR_DONE, STATE_RESP_SEND, STATE_FINAL_EXPECTED, STATE_OTHER_POLL_EXPECTED, STATE_RESP_PENDING, STATE_DIST_EST_EXPECTED, STATE_DIST_EST_SEND, STATE_TIGHT_LOOP,
-STATE_RECEIVE, STATE_PRESYNC, STATE_SYNC, STATE_ANCHOR, STATE_TAG, STATE_FIRST_START, STATE_OBLIVION, STATE_ACK_EXPECTED} STATES;
+STATE_RECEIVE, STATE_PRESYNC, STATE_SYNC, STATE_ANCHOR, STATE_TAG, STATE_FIRST_START, STATE_OBLIVION, STATE_ACK_EXPECTED,
+STATE_RECEIVED_WIFI_DATA, STATE_SEND_UWB_DATA, UWB_DATA_EXPECTED, STATE_RECEIVE_UWB_DATA} STATES;
 volatile uint8_t current_state = STATE_IDLE;
 unsigned long silenced_at =0;
 long randNumber;
@@ -253,7 +254,7 @@ void setup() {
 void handleSent() {
   // status change on sent success
   sendComplete = true;
-  //Serial.println("Send complete");
+  Serial.println("Send complete");
 }
 
 
@@ -298,6 +299,7 @@ double TIME_UNIT = 1.0 / (128*499.2e6); // seconds
 
 double start_time_us = 0, current_time_us = 0;
 
+
 void loop() {
   if (RxTimeout == true) {
     RxTimeout = false;
@@ -306,9 +308,84 @@ void loop() {
       receiver(0);
     #endif
   }
+    
+  Serial.println("============");
+  delay(2000);
+  seq++;
+  Serial.print("seq: ");
+  Serial.println(seq);
+  Serial.print("current state: ");
+  Serial.println(current_state);
   
   switch(current_state) {
+
+    //For initiator - Send uwb info to the phone that it should turn its wifi on
+    //Follows directly from case: "STATE_RECEIVED_WIFI_DATA"
+    case STATE_SEND_UWB_DATA: {
+      Serial.println("initiator: STATE_SEND_UWB_DATA");
+      seq++;
+      currentDeviceIndex = 0;
+      tx_poll_msg[SRC_IDX] = myDevID; // 3 for initiator
+      tx_poll_msg[DST_IDX] = BROADCAST_ID;
+      tx_poll_msg[SEQ_IDX] = seq & 0xFF;
+      tx_poll_msg[SEQ_IDX + 1] = seq >> 8;
+
+      currentTime = get_time_u64();
+      
+      generic_send(tx_poll_msg, sizeof(tx_poll_msg), POLL_MSG_POLL_TX_TS_IDX, SEND_DELAY_FIXED);
+      
+      // reset the state
+      current_state = STATE_IDLE;
+
+      while(!sendComplete);
+      sendComplete = false;
+      
+      Serial.println("Sent the UWB data");
+      break;
+    }
+
+    //For tag (phone) - keep UWB communication open. If data is received, change state to STATE_RECEIVE_UWB_DATA
+    case UWB_DATA_EXPECTED: {
+      Serial.println("phone: UWB_DATA_EXPECTED");
+      if (received) {
+        received = false;
+        current_state = STATE_RECEIVE_UWB_DATA;
+      } else {
+        received = false;
+        receiver(TYPICAL_RX_TIMEOUT);
+      }
+      break; 
+    }
     
+    //For tag (phone) - receive UWB data from the initiator that it should turn its wifi on
+    case STATE_RECEIVE_UWB_DATA: {
+      Serial.println("phone: STATE_RECEIVE_UWB_DATA");
+
+      received = false;
+      show_packet(rx_packet, DW1000.getDataLength());
+
+      Serial.println("rx_packet[DST_IDX]: " + rx_packet[DST_IDX]);
+      Serial.println("myDevID: " + myDevID);
+      Serial.println("BROADCAST_ID: " + BROADCAST_ID);
+      
+      //Check that the response is from the tag
+      if ((rx_packet[DST_IDX] == myDevID || rx_packet[DST_IDX] == BROADCAST_ID)) {
+        Serial.println("the response matches the tag devID: ");
+      
+        // turn the phone's wifi on
+
+        // turn the phone's wifi off
+
+
+      }
+      // return to original state
+      current_state = STATE_IDLE;
+      received = false;
+      receiver(TYPICAL_RX_TIMEOUT);
+
+      Serial.println("==================");
+      break;
+    }
     //For initiator - Sends to state poll
     //For tag - Waits for poll message from initiator
     case STATE_IDLE: {
@@ -322,7 +399,7 @@ void loop() {
         received = false;
         
         thisRange.initialize();
-        current_state = STATE_RESP_SEND;
+        current_state = STATE_RECEIVE_UWB_DATA;
         #if (DEBUG_PRINT==1)
         Serial.println("******************");
         Serial.println("Going to resp send");
@@ -335,16 +412,19 @@ void loop() {
         received = false;
         sendComplete = false;
         //Switch to POLL state
-        current_state = STATE_POLL;
+        current_state = STATE_SEND_UWB_DATA;
         unlock_waiting = 0;
+        // Serial.println("INIT is 1");
+        // Serial.println("switching state to STATE POLL");
       #endif
       break;
     }
     //For Initiator - Creates and broadcasts a poll message to the tag
     case STATE_POLL: {
+      Serial.println("STATE POLL");
       //Send POLL here
       seq++;
-      Serial.println(seq);
+      // Serial.println(seq);
       currentDeviceIndex = 0;
       tx_poll_msg[SRC_IDX] = myDevID;
       tx_poll_msg[DST_IDX] = BROADCAST_ID;
@@ -357,17 +437,20 @@ void loop() {
       current_state = STATE_RESP_EXPECTED;
       int i = 0;
 
-      while(!sendComplete); //Wait for the send to complete
+      while(!sendComplete);
 
       current_time_us = get_time_us();
       sendComplete = false;
+
       receiver(TYPICAL_RX_TIMEOUT);
       DW1000.getSystemTimestamp(currentDWTime);
       init_time = currentDWTime.getTimestamp();
+
       break;
     }
     //For tag - Sends a response to the poll message received from the initiator
     case STATE_RESP_SEND: {
+      Serial.println("STATE_RESP_SEND");
       //retrieve sequence number from the poll message
       seq = rx_packet[SEQ_IDX] +  ((uint16_t)rx_packet[SEQ_IDX+1] << 8);
       #if (DEBUG_PRINT==1)  
@@ -403,6 +486,7 @@ void loop() {
 
     //For initiator - Waits for a response from the tag
     case STATE_RESP_EXPECTED: {
+      Serial.println("STATE_RESP_EXPECTED");
       if (received) {
         received = false;
         show_packet(rx_packet, DW1000.getDataLength());
@@ -437,6 +521,7 @@ void loop() {
     }
     //For initiator - Sends a final message to the tag
     case STATE_FINAL_SEND: {
+      Serial.println("STATE_FINAL_SEND");
       //Create final message
       tx_final_msg[SRC_IDX] = myDevID;
       tx_final_msg[DST_IDX] = BROADCAST_ID;
@@ -486,10 +571,16 @@ void loop() {
       start_time_us = get_time_us();
       break;
     }
-    //For tag - Waits for a final message from the initiator
+    /* Dont delete, TBC*/
     case STATE_FINAL_EXPECTED: {
+      Serial.println("STATE_FINAL_EXPECTED");
+      Serial.println("RECEIVED: " + String(received));
       if(received) {
         received = false;
+        Serial.println("rx_packet[DST_IDX]: " + String(rx_packet[DST_IDX]));
+        Serial.println("myDevID: " + String(myDevID));
+        Serial.println("BROADCAST_ID: " + String(BROADCAST_ID));
+
 
         if (rx_packet[DST_IDX]==myDevID || rx_packet[DST_IDX] == BROADCAST_ID) {
           DW1000Time rxTS;
