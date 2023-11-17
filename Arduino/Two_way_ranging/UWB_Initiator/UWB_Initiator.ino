@@ -371,7 +371,7 @@ void loop() {
       //Check that the response is from the tag
       if ((rx_packet[DST_IDX] == myDevID || rx_packet[DST_IDX] == BROADCAST_ID)) {
         Serial.println("the response matches the tag devID: ");
-      
+        Serial.println("MESSAGE RECEIVED FOR THE ANDROID");
         // turn the phone's wifi on
 
         // turn the phone's wifi off
