@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.mci.wakeonuwb"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="UWB Listener App"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+        </activity>
+
+        <!-- To provide slices you must define a slice provider -->
+<!--        <provider-->
+<!--            android:name=".MySliceProvider"-->
+<!--            android:authorities="com.saurabh.androidslices"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.VIEW"/>-->
+<!--                <category android:name="android.app.slice.category.SLICE"/>-->
+<!--            </intent-filter>-->
+<!--        </provider>-->
+
+<!--        &lt;!&ndash; To provide slices you must define a slice provider &ndash;&gt;-->
+<!--        <provider-->
+<!--            android:name=".SliceProblemProvider"-->
+<!--            android:authorities="com.test.androidslices.problem"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.VIEW"/>-->
+<!--                <category android:name="android.app.slice.category.SLICE"/>-->
+<!--            </intent-filter>-->
+<!--        </provider>-->
+
+<!--        <receiver android:name=".MyBroadcastReceiver"/>-->
+
+    </application>
+
+</manifest>
