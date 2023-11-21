@@ -144,16 +144,16 @@ class UWBTransport (private val context: Context, var arduino: Arduino) : Arduin
         if (bytes != null) {
             if (bytes.size > 0) {
                 if (arduino_msg != null) {
-                    uwbtransportlistener?.onUwbDebugging(arduino_msg + "\n")
                     val wifi = this.context.getSystemService(Context.WIFI_SERVICE) as WifiManager?
-                    if (arduino_msg.contains("seq:")) {
+                    if (arduino_msg.contains("phone:")) {
+                        uwbtransportlistener?.onUwbDebugging(arduino_msg + "\n")
                         // TODO: Turn on WiFi here
                         if (wifi != null && !wifi.isWifiEnabled) {
                             wifi.setWifiEnabled(true)
                         }
                     } else {
 //                        Any Other Messages
-                        uwbtransportlistener?.onUwbDebugging("IGNORED: $arduino_msg")
+//                        uwbtransportlistener?.onUwbDebugging("IGNORED: $arduino_msg")
                         return
                     }
                 }
@@ -167,7 +167,7 @@ class UWBTransport (private val context: Context, var arduino: Arduino) : Arduin
         state = State.IDLE
         tx_frame = null
         rx_frame = null
-        uwbtransportlistener?.onUwbDebugging("UWB Attached...\n")
+//        uwbtransportlistener?.onUwbDebugging("UWB Attached...\n")
     }
 
     override fun onUsbPermissionDenied() {

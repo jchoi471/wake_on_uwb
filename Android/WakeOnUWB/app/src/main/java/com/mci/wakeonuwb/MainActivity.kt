@@ -5,6 +5,9 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
+import android.util.Log
+import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +30,33 @@ class MainActivity : AppCompatActivity(), UWBtransportListener {
         arduino = Arduino(this)
         uwbtransport = UWBTransport(this, arduino!!)
         uwbtransport!!.setUwbtransportlistener(this)
+
+        val connectButton: Button = findViewById(R.id.connect)
+
+        connectButton.setOnClickListener{
+            onConnectButtonClick(it)
+        }
+
+        val disconnectButton: Button = findViewById(R.id.disconnect)
+
+        disconnectButton.setOnClickListener {
+            onDisconnectButtonClick(it)
+        }
+
+    }
+
+    fun onConnectButtonClick(view: View) {
+        uwbtransport!!.usbStart()
+        showToast("Connect button clicked!")
+    }
+
+    fun onDisconnectButtonClick(view: View) {
+        uwbtransport!!.usbStop()
+        showToast("Disconnect button clicked!")
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onStart() {
@@ -41,11 +71,16 @@ class MainActivity : AppCompatActivity(), UWBtransportListener {
 
     fun display(message: String?) {
         runOnUiThread {
-            textView.append(
-                """
-            $message
-            """.trimIndent()
-            )
+            if (textView != null) {
+                Log.d("DisplayFunction", "Message: $message")
+                if (!message.isNullOrBlank()) {
+                    textView.append(
+                        """
+                $message
+                """.trimIndent()
+                    )
+                }
+            }
         }
     }
     override fun onUwbTXSuccess() {

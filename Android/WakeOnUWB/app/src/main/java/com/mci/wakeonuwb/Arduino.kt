@@ -69,7 +69,7 @@ class Arduino : UsbSerialInterface.UsbReadCallback {
         val permissionIntent = PendingIntent.getBroadcast(
             context, 0, Intent(
                 ACTION_USB_DEVICE_PERMISSION
-            ), PendingIntent.FLAG_IMMUTABLE
+            ), 0
         )
         val filter = IntentFilter()
         filter.addAction(ACTION_USB_DEVICE_PERMISSION)
@@ -153,7 +153,9 @@ class Arduino : UsbSerialInterface.UsbReadCallback {
                                 }
                             }
                         }
-                    } else listener?.onUsbPermissionDenied()
+                    } else{
+                        listener?.onUsbPermissionDenied()
+                    }
                 }
             }
         }
