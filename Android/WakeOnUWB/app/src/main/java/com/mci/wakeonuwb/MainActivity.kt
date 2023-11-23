@@ -2,15 +2,18 @@ package com.mci.wakeonuwb
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.View
+import android.webkit.WebChromeClient
+import android.webkit.WebView
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+
 
 class MainActivity : AppCompatActivity(), UWBtransportListener {
 
@@ -43,6 +46,12 @@ class MainActivity : AppCompatActivity(), UWBtransportListener {
             onDisconnectButtonClick(it)
         }
 
+        val webView: WebView = findViewById(R.id.webView)
+        val video: String = "<iframe width=\"100%\" height=\"100%\" src=\"https://www.youtube.com/embed/u_BcMXgws6Y?si=hU2ERTI95koxUeVR\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>"
+        webView.loadData(video, "text/html", "utf-8")
+        webView.settings.javaScriptEnabled = true
+        webView.webChromeClient = WebChromeClient()
+
     }
 
     fun onConnectButtonClick(view: View) {
@@ -51,6 +60,10 @@ class MainActivity : AppCompatActivity(), UWBtransportListener {
     }
 
     fun onDisconnectButtonClick(view: View) {
+        val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager?
+        if (wifi != null && wifi.isWifiEnabled) {
+            wifi.setWifiEnabled(false)
+        }
         uwbtransport!!.usbStop()
         showToast("Disconnect button clicked!")
     }
