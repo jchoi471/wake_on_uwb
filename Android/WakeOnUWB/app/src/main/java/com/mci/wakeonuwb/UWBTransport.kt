@@ -150,6 +150,8 @@ class UWBTransport (private val context: Context, var arduino: Arduino) : Arduin
                         // TODO: Turn on WiFi here
                         if (wifi != null && !wifi.isWifiEnabled) {
                             wifi.setWifiEnabled(true)
+                            Thread.sleep(10000) // sleep for 10 seconds to wait for wifi auto-connection
+                            uwbtransportlistener?.videoDisplay()
                         }
                     } else {
 //                        Any Other Messages
