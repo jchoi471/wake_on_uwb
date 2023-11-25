@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/receivedMessageView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -12,64 +12,75 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
+        android:background="@drawable/custom_button"
         android:text="connect"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="@drawable/custom_button"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/disconnect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:background="@drawable/custom_button_2"
         android:text="disconnect"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connect"
-        android:background="@drawable/custom_button_2"/>
+        app:layout_constraintTop_toBottomOf="@+id/connect" />
 
     <WebView
+        android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="250sp"
         android:layout_marginTop="40dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+<<<<<<< Updated upstream
         app:layout_constraintTop_toBottomOf="@+id/disconnect"
-        android:id="@+id/webView"/>
+        android:id="@+id/webView">
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="getCarrierPrivilegeStatus" />
+    </WebView>
+=======
+        app:layout_constraintTop_toBottomOf="@+id/disconnect" />
+>>>>>>> Stashed changes
 
     <!--    <androidx.constraintlayout.widget.Guideline-->
-<!--        android:id="@+id/guideline"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="horizontal"-->
-<!--        app:layout_constraintGuide_percent="0.98" />-->
+    <!--        android:id="@+id/guideline"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:orientation="horizontal"-->
+    <!--        app:layout_constraintGuide_percent="0.98" />-->
 
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="500dp"
-        app:layout_constraintTop_toBottomOf="@+id/disconnect"
-        android:text="Valid Messages: "
         android:gravity="center"
-        tools:ignore="MissingConstraints"
-        android:textStyle="bold"
+        android:text="Valid Messages: "
         android:textColor="@color/title"
-        />
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@+id/disconnect"
+        tools:ignore="MissingConstraints" />
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="414dp"
+        android:layout_height="80dp"
         android:gravity="bottom"
         android:padding="16dp"
         android:scrollbars="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title"/>
+        app:layout_constraintTop_toBottomOf="@+id/title" />
 
-<!--    app:layout_constraintBottom_toTopOf="@+id/guideline"-->
+    <!--    app:layout_constraintBottom_toTopOf="@+id/guideline"-->
     <!--        style="?android:attr/listSeparatorTextViewStyle"-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
