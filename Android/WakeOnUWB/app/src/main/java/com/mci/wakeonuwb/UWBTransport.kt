@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.net.wifi.WifiManager
 import android.os.Handler
+import android.os.Looper
 import java.util.Random
 class UWBTransport (private val context: Context, var arduino: Arduino) : ArduinoListener {
 
@@ -139,6 +140,7 @@ class UWBTransport (private val context: Context, var arduino: Arduino) : Arduin
         return true
     }
 
+    val mainHandler = Handler(Looper.getMainLooper())
     override fun onArduinoMessage(bytes: ByteArray?) {
         val arduino_msg = bytes?.let { String(it) }
         if (bytes != null) {
@@ -150,8 +152,14 @@ class UWBTransport (private val context: Context, var arduino: Arduino) : Arduin
                         // TODO: Turn on WiFi here
                         if (wifi != null && !wifi.isWifiEnabled) {
                             wifi.setWifiEnabled(true)
-                            Thread.sleep(10000) // sleep for 10 seconds to wait for wifi auto-connection
-                            uwbtransportlistener?.videoDisplay()
+                            mainHandler.post {
+                                try {
+                                    Thread.sleep(10000) // sleep for 10 seconds to wait for wifi auto-connection
+                                    uwbtransportlistener?.videoDisplay()
+                                } catch (e: InterruptedException) {
+                                    e.printStackTrace()
+                                }
+                            }
                         }
                     } else {
 //                        Any Other Messages

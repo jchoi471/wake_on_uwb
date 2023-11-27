@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(), UWBtransportListener {
 
     override fun videoDisplay() {
         val webView: WebView = findViewById(R.id.webView)
-        val video: String = "<iframe width=\"100%\" height=\"100%\" src=\"https://www.youtube.com/embed/u_BcMXgws6Y?si=hU2ERTI95koxUeVR\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>"
+        val video: String = "<iframe width=\"100%\" height=\"100%\" src=\"https://www.youtube.com/embed/u_BcMXgws6Y?autoplay=1&mute=1\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe>"
         webView.loadData(video, "text/html", "utf-8")
         webView.settings.javaScriptEnabled = true
         webView.webChromeClient = WebChromeClient()
